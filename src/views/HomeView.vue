@@ -1,6 +1,6 @@
 <template>
   
-  <button type="button" class="btn btn-primary">Primary</button>
+  <button type="button" class="btn btn-primary">Primary1111111</button>
 <button type="button" class="btn btn-secondary">Secondary</button>
 <button type="button" class="btn btn-success">Success</button>
 <button type="button" class="btn btn-danger">Danger</button>
