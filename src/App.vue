@@ -1,11 +1,17 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
+  <nav-bar></nav-bar>
   <router-view/>
 </template>
 
+<script type="module">
+  import NavBar from '@/components/NavBar.vue';
+
+  export default{
+    components:{
+      NavBar
+    }
+  }
+</script>
 <style lang="scss">
 @import 'bootstrap';
 #app {
