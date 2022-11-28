@@ -1,6 +1,6 @@
 <template>
     <div class="text-end">
-        <button @click="$refs.AddProductModal.show()" type="button" class="btn btn-primary">新增產品</button>
+        <button @click="add()" type="button" class="btn btn-primary">新增產品</button>
     </div>
     <table class="table mt-4">
         <thead>
@@ -16,7 +16,7 @@
         <tbody>
             <tr v-for="(item, index) in products" :key="item.id">
                 <td>{{item.category}}</td>
-                <td>{{item.title}}</td>
+                <td>{{item.title}} <img :src="item.imageUrl" width="100"></td>
                 <td class="text-right">
                     {{item.origin_price}}
                 </td>
@@ -29,41 +29,60 @@
                 </td>
                 <td>
                     <div class="btn-group">
-                        <button class="btn btn-outline-primary btn-sm">編輯</button>
+                        <button @click="edit(item.id)" class="btn btn-outline-primary btn-sm">編輯</button>
                         <button class="btn btn-outline-danger btn-sm">刪除</button>
                     </div>
                 </td>
             </tr>
         </tbody>
     </table>
-    <add-product-modal ref="AddProductModal"></add-product-modal>
+    <product-modal :propsProduct="tempProduct" :propsModalMode="modalMode" ref="ProductModal"></product-modal>
 </template>
 
 <script>
-    import AddProductModal from '@/components/Product/AddProductModal.vue';
+    import ProductModal from '@/components/Product/ProductModal.vue';
     export default{
         data(){
             return{
-                products:[]
+                products:[],
+                tempProduct:{
+                },
+                modalMode:'add',  // add or edit
+                api:{
+                     path:process.env.VUE_APP_APIPATH,
+                     privatePath:process.env.VUE_APP_API
+                }
             }
         },
         methods:{
             getProducts(){
-                const apiPath=process.env.VUE_APP_APIPATH;
-                const apiUrl=process.env.VUE_APP_API;
+                const apiPath=this.api.path;
+                const apiUrl=this.api.privatePath;
                 const url=`${apiUrl}api/${apiPath}/admin/products`
-                console.log(url);
+                //console.log(url);
                 this.axios.get(url).then(res=>{
-                    console.log(res.data);
+                    //console.log(res.data);
                     this.products=res.data.products;
                 })
             },
+            edit(id){
+                this.modalMode='edit';
+                let p=this.products.find((item)=>{return item.id==id});
+                this.tempProduct=JSON.parse(JSON.stringify(p));
+                this.$refs.ProductModal.show();
+            },
+            add(){
+                this.modalMode='add';
+                this.tempProduct={};
+                this.$refs.ProductModal.show();
+            }
         },
         created(){
             this.getProducts();
+            this.$emitter.on('updateProductSuccess',()=>{window.location.reload()});
         },
         components:{
-            AddProductModal
+            ProductModal
         }
     }
 </script>
