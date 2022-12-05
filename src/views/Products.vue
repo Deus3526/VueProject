@@ -30,16 +30,18 @@
                 <td>
                     <div class="btn-group">
                         <button @click="edit(item.id)" class="btn btn-outline-primary btn-sm">編輯</button>
-                        <button class="btn btn-outline-danger btn-sm">刪除</button>
+                        <button @click="del(item.id)" class="btn btn-outline-danger btn-sm">刪除</button>
                     </div>
                 </td>
             </tr>
         </tbody>
     </table>
     <product-modal :propsProduct="tempProduct" :propsModalMode="modalMode" ref="ProductModal"></product-modal>
+    <delete-product-modal :propsProductID="tempDelProductID" ref="delProductMoal"></delete-product-modal>
 </template>
 
 <script>
+    import DeleteProductModal from '@/components/Product/DeleteProductModal.vue';
     import ProductModal from '@/components/Product/ProductModal.vue';
     export default{
         data(){
@@ -47,6 +49,7 @@
                 products:[],
                 tempProduct:{
                 },
+                tempDelProductID:'',
                 modalMode:'add',  // add or edit
                 api:{
                      path:process.env.VUE_APP_APIPATH,
@@ -74,15 +77,25 @@
             add(){
                 this.modalMode='add';
                 this.tempProduct={};
+                //console.log(this.$refs.productModal);
                 this.$refs.ProductModal.show();
+            },
+            del(id){
+                this.tempDelProductID=id;
+                this.$refs.delProductMoal.show();
             }
         },
         created(){
             this.getProducts();
             this.$emitter.on('updateProductSuccess',()=>{window.location.reload()});
+            this.$emitter.on('deleteProductSuccess',(id)=>{
+                let d=this.products.findIndex((item,index)=>{return item.id==id});
+                this.products.splice(d,1);
+            });
         },
         components:{
-            ProductModal
-        }
+    ProductModal,
+    DeleteProductModal
+}
     }
 </script>

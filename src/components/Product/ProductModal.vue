@@ -112,7 +112,8 @@
 </template>
 
 <script>
-import Modal from 'bootstrap/js/dist/modal'
+//import Modal from 'bootstrap/js/dist/modal'
+import modalMixin from '@/mixins/modalMixin';
 export default {
     props: {
         propsProduct: {
@@ -138,12 +139,12 @@ export default {
         }
     },
     methods: {
-        show() {
-            this.modal.show();
-        },
-        hide() {
-            this.modal.hide();
-        },
+        // show() {
+        //     this.modal.show();
+        // },
+        // hide() {
+        //     this.modal.hide();
+        // },
         uploadfile() {
             let file = this.$refs.fileInput.files[0];
             let formData = new FormData();
@@ -174,7 +175,7 @@ export default {
             })
             return promise;
         },
-        submit() {
+        submit() { //uploadfile(上傳圖片)確認ok之後，拿到回傳的url，再uploadProduct(上傳商品資訊)
             this.uploadfile().then(imageUrl=>{
                 if(imageUrl!=null) this.product.imageUrl=imageUrl
                 this.uploadProduct();
@@ -226,9 +227,10 @@ export default {
         }
     },
     mounted() {
-        this.modal = new Modal(this.$refs.modal);
+        //this.modal = new Modal(this.$refs.modal);
         this.modalMode = this.propsModalMode;
         this.product = this.propsProduct;
-    }
+    },
+    mixins:[modalMixin]
 }
 </script>
