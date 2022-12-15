@@ -15,16 +15,16 @@
         </thead>
         <tbody>
             <tr v-for="(item, index) in products" :key="item.id">
-                <td>{{item.category}}</td>
-                <td>{{item.title}} <img :src="item.imageUrl" width="100"></td>
+                <td>{{ item.category }}</td>
+                <td>{{ item.title }} <img :src="item.imageUrl" width="100"></td>
                 <td class="text-right">
-                    {{item.origin_price}}
+                    {{ item.origin_price }}
                 </td>
                 <td class="text-right">
-                    {{item.price}}
+                    {{ item.price }}
                 </td>
                 <td>
-                    <span v-if="item.is_enabled==1" class="text-success">啟用</span>
+                    <span v-if="item.is_enabled == 1" class="text-success">啟用</span>
                     <span v-else class="text-muted">不啟用</span>
                 </td>
                 <td>
@@ -38,75 +38,88 @@
     </table>
     <product-modal :propsProduct="tempProduct" :propsModalMode="modalMode" ref="ProductModal"></product-modal>
     <delete-product-modal :propsProductID="tempDelProductID" ref="delProductMoal"></delete-product-modal>
-    <pagination :pages="pages" @emit-pages="getProducts"></pagination>
+    <pagination :pages="pages" @emit-pages="updatePage"></pagination>
 </template>
 
 <script>
-    import DeleteProductModal from '@/components/Product/DeleteProductModal.vue';
-    import ProductModal from '@/components/Product/ProductModal.vue';
-    import Pagination from '@/components/Pagination.vue';
-    export default{
-        data(){
-            return{
-                products:[],
-                tempProduct:{
-                },
-                tempDelProductID:'',
-                modalMode:'add',  // add or edit
-                api:{
-                     path:process.env.VUE_APP_APIPATH,
-                     privatePath:process.env.VUE_APP_API
-                },
-                pages:{}
+import DeleteProductModal from '@/components/Product/DeleteProductModal.vue';
+import ProductModal from '@/components/Product/ProductModal.vue';
+import Pagination from '@/components/Pagination.vue';
+export default {
+    data() {
+        return {
+            products: [],
+            tempProduct: {
+            },
+            tempDelProductID: '',
+            modalMode: 'add',  // add or edit
+            api: {
+                path: process.env.VUE_APP_APIPATH,
+                privatePath: process.env.VUE_APP_API
+            },
+            pages: {
+                current_page: this.$route.query['page'] == null ? 1 : this.$route.query['page']
             }
+        }
+    },
+    methods: {
+        getProducts(page) {
+
+            this.$emitter.emit('updateLoadingStatus', true);
+            const apiPath = this.api.path;
+            const apiUrl = this.api.privatePath;
+            const url = `${apiUrl}api/${apiPath}/admin/products?page=${page==null?1:page}`
+            //console.log(url);
+            this.axios.get(url).then(res => {
+                console.log(res.data);
+                this.page = res.data.pagination.current_page;
+                this.pages = res.data.pagination;
+                this.products = res.data.products;
+            }).finally(() => {
+                this.$emitter.emit('updateLoadingStatus', false)
+            })
         },
-        methods:{
-            getProducts(page){
-                this.$emitter.emit('updateLoadingStatus',true);
-                const apiPath=this.api.path;
-                const apiUrl=this.api.privatePath;
-                const url=`${apiUrl}api/${apiPath}/admin/products?page=${page==null?1:page}`
-                //console.log(url);
-                this.axios.get(url).then(res=>{
-                    console.log(res.data);
-                    this.page=res.data.pagination.current_page;
-                    this.pages=res.data.pagination;
-                    this.products=res.data.products;
-                }).finally(()=>{
-                    this.$emitter.emit('updateLoadingStatus',false)
-                })
-            },
-            edit(id){
-                this.modalMode='edit';
-                let p=this.products.find((item)=>{return item.id==id});
-                this.tempProduct=JSON.parse(JSON.stringify(p));
-                this.$refs.ProductModal.show();
-            },
-            add(){
-                this.modalMode='add';
-                this.tempProduct={};
-                //console.log(this.$refs.productModal);
-                this.$refs.ProductModal.show();
-            },
-            del(id){
-                this.tempDelProductID=id;
-                this.$refs.delProductMoal.show();
-            }
+        edit(id) {
+            this.modalMode = 'edit';
+            let p = this.products.find((item) => { return item.id == id });
+            this.tempProduct = JSON.parse(JSON.stringify(p));
+            this.$refs.ProductModal.show();
         },
-        created(){
-            
-            this.$emitter.on('updateProductSuccess',()=>{window.location.reload()});
-            this.$emitter.on('deleteProductSuccess',(id)=>{
-                let d=this.products.findIndex((item,index)=>{return item.id==id});
-                this.products.splice(d,1);
-            });
-            this.getProducts();
-            
+        add() {
+            this.modalMode = 'add';
+            this.tempProduct = {};
+            //console.log(this.$refs.productModal);
+            this.$refs.ProductModal.show();
         },
-        components:{
-    ProductModal,
-    DeleteProductModal,
-    Pagination
-}
+        del(id) {
+            this.tempDelProductID = id;
+            this.$refs.delProductMoal.show();
+        },
+        updatePage(page) {
+            this.$router.push({ name: 'Products', query: { page: page } });
+        }
+    },
+    watch: {
+        $route(to, from) {
+            // 获取query中的参数
+            let page=this.$route.query['page'];
+            this.getProducts(page);
+        },
+    },
+    created() {
+        this.$emitter.on('updateProductSuccess', () => { window.location.reload() });
+        this.$emitter.on('deleteProductSuccess', (id) => {
+            let d = this.products.findIndex((item, index) => { return item.id == id });
+            this.products.splice(d, 1);
+        });
+        let page=this.$route.query['page'];
+        this.getProducts(page);
+
+    },
+    components: {
+        ProductModal,
+        DeleteProductModal,
+        Pagination
     }
+}
 </script>
