@@ -38,11 +38,13 @@
     </table>
     <product-modal :propsProduct="tempProduct" :propsModalMode="modalMode" ref="ProductModal"></product-modal>
     <delete-product-modal :propsProductID="tempDelProductID" ref="delProductMoal"></delete-product-modal>
+    <pagination :pages="pages" @emit-pages="getProducts"></pagination>
 </template>
 
 <script>
     import DeleteProductModal from '@/components/Product/DeleteProductModal.vue';
     import ProductModal from '@/components/Product/ProductModal.vue';
+    import Pagination from '@/components/Pagination.vue';
     export default{
         data(){
             return{
@@ -54,18 +56,24 @@
                 api:{
                      path:process.env.VUE_APP_APIPATH,
                      privatePath:process.env.VUE_APP_API
-                }
+                },
+                pages:{}
             }
         },
         methods:{
-            getProducts(){
+            getProducts(page){
+                this.$emitter.emit('updateLoadingStatus',true);
                 const apiPath=this.api.path;
                 const apiUrl=this.api.privatePath;
-                const url=`${apiUrl}api/${apiPath}/admin/products`
+                const url=`${apiUrl}api/${apiPath}/admin/products?page=${page==null?1:page}`
                 //console.log(url);
                 this.axios.get(url).then(res=>{
-                    //console.log(res.data);
+                    console.log(res.data);
+                    this.page=res.data.pagination.current_page;
+                    this.pages=res.data.pagination;
                     this.products=res.data.products;
+                }).finally(()=>{
+                    this.$emitter.emit('updateLoadingStatus',false)
                 })
             },
             edit(id){
@@ -86,16 +94,19 @@
             }
         },
         created(){
-            this.getProducts();
+            
             this.$emitter.on('updateProductSuccess',()=>{window.location.reload()});
             this.$emitter.on('deleteProductSuccess',(id)=>{
                 let d=this.products.findIndex((item,index)=>{return item.id==id});
                 this.products.splice(d,1);
             });
+            this.getProducts();
+            
         },
         components:{
     ProductModal,
-    DeleteProductModal
+    DeleteProductModal,
+    Pagination
 }
     }
 </script>

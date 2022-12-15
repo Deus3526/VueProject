@@ -60,9 +60,8 @@ export default {
         }
     },
     created(){
-        this.$emitter.on('Login',(data)=>{this.isLogin=data});
         let token = document.cookie.replace(/(?:(?:^|.*;\s*)hexToken\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-
+        this.$emitter.on('Login',(data)=>{this.isLogin=data;this.axios.defaults.headers.common.Authorization = token;});
         //登出後或未登入的token都是空值，以此先驗證避免ajax的等待時間
         if(token=='') 
         {
@@ -86,7 +85,8 @@ export default {
         }).catch(err => {
             console.log(err)
             this.$router.push('/Login');
-        })
+        });
+
     }
 }
 </script>

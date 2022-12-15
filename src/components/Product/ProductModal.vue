@@ -129,7 +129,7 @@ export default {
         return {
             modal: {},
             product: {},
-            modalMode: ''
+            modalMode: '',
         }
     },
     watch: {
@@ -155,6 +155,7 @@ export default {
             const url = `${apiUrl}api/${apiPath}/admin/upload`;
             const promise=new Promise((resolve,reject)=>{
                 if(this.$refs.fileInput.files.length==0) resolve(null);
+                this.$emitter.emit('updateLoadingStatus',true);
                 this.axios.post(url,formData).then(res=>{                 
                     if(res.data.success)
                     {
@@ -171,17 +172,22 @@ export default {
                     alert('上傳圖片時發生錯誤');
                     console.log(err);
                     reject('上傳圖片時發生錯誤');
+                }).finally(()=>{
+                    this.$emitter.emit('updateLoadingStatus',false);
                 });
             })
             return promise;
         },
         submit() { //uploadfile(上傳圖片)確認ok之後，拿到回傳的url，再uploadProduct(上傳商品資訊)
+            this.hide();
             this.uploadfile().then(imageUrl=>{
                 if(imageUrl!=null) this.product.imageUrl=imageUrl
                 this.uploadProduct();
             }).catch(err=>{
                 alert('上傳產品資訊時發生錯誤');
                 console.log(err);
+            }).finally(()=>{
+                this.$emitter.emit('updateLoadingStatus',true);
             })
         },
         uploadProduct(){
